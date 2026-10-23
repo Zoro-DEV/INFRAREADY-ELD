@@ -1,0 +1,25 @@
+---
+- name: Configuration de base de WIN-DC01
+  hosts: windows
+
+  tasks:
+    - name: Vérifier le service DNS
+      ansible.windows.win_service:
+        name: DNS
+        state: started
+        start_mode: auto
+
+    - name: Créer un dossier de travail
+      ansible.windows.win_file:
+        path: C:\InfraReady
+        state: directory
+
+    - name: Récupérer les infos du système
+      ansible.windows.win_shell: Get-ComputerInfo | Select-Object CsName, OsVersion
+      register: info
+      changed_when: false
+
+    - name: Afficher le résultat
+      ansible.builtin.debug:
+        var: info.stdout_lines
+

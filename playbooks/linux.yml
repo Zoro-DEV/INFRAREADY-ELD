@@ -1,0 +1,23 @@
+---
+- name: Configuration de base de LINUX01
+  hosts: linux
+  become: true
+
+  tasks:
+   - name: Installer nginx
+     ansible.builtin.apt:
+       name: nginx
+       state: present
+       update_cache: true
+       cache_valid_time: 3600
+
+   - name: Démarrer et activé nginx
+     ansible.builtin.service:
+       name: nginx
+       state: started
+       enabled: true
+
+   - name: Vérifier que nginx repond
+     ansible.builtin.uri:
+       url: http://localhost
+       status_code: 200

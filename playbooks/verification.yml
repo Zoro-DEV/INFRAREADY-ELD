@@ -1,0 +1,112 @@
+---
+- name: Verification de Linux01
+  hosts: linux
+  become: true
+  gather_facts: true
+
+  vars:
+    linux_services:
+      - ssh.service
+      - nginx.service
+      - node_exporter.service
+
+  tasks:
+    - name: Collecter l'état des services
+      ansible.builtin.service_facts:
+
+    - name: Vérifier que les services Linux tournent
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services[item].state == 'running'
+        fail_msg: "{{ item }} n'est pas démarré"
+        success_msg: "{{ item }} est actif"
+      loop: "{{ linux_services }}"
+
+    - name: Vérifier que Nginx répond en HTTP
+      ansible.builtin.uri:
+        url: http://localhost
+        status_code: 200
+
+    - name: Vérifier que node_exporter expose ses métriques
+      ansible.builtin.uri:
+        url: http://localhost:9100/metrics
+        return_content: false
+        status_code: 200
+
+    - name: Vérifier qu aucune unité systemd n est en echec
+      ansible.builtin.command: systemctl --failed --no-legend
+      register: failed_units
+      changed_when: false
+      failed_when: failed_units.stdout | length > 0
+
+    - name: Vérifier la résolution DNS du controleur de domaine
+      ansible.builtin.command: getent hosts WIN-DC01.infraready.test
+      register: dns_check
+      changed_when: false
+      failed_when: dns_check.rc != 0
+
+    - name: Vérifier le montage du dique de 5Go
+      ansible.builtin.command: findmnt /mnt/labdata
+      changed_when: false
+
+
+- name: Vérification de WIN-DC01
+  hosts: windows
+  gather_facts: false
+
+  vars:
+    windows_services:
+      - DNS
+      - NTDS
+      - Netlogon
+      - WinRM
+      - windows_exporter
+
+  tasks:
+    - name: Lire l'état des services Windows
+      ansible.windows.win_service_info:
+        name: "{{ item }}"
+      loop: "{{ windows_services }}"
+      register: win_svc
+
+    - name: Vérifier que les services Windows tournent
+      ansible.builtin.assert:
+        that:
+          - item.services | length == 1
+          - item.services[0].state == 'started'
+        fail_msg: "Service Windows {{item.item }} absent ou arrêté"
+        success_msg: "{{item.item}} est actif"
+      loop: "{{ win_svc.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Vérifier la résolution DNS du domaine
+      ansible.windows.win_shell: Resolve-DnsName WIN-DC01.infraready.test -ErrorAction Stop
+      changed_when: false
+
+    - name: Vérifier que le domaine répond
+      ansible.windows.win_shell: Get-ADDomain | Select-Object -ExpandProperty DNSRoot
+      register: domain
+      changed_when: false
+      failed_when: "'infraready.test' not in domain.stdout"
+
+
+- name: Vérification de la supervision depuis OPS01
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Interroger les cibles prometheus
+      ansible.builtin.uri:
+        url: http://localhost:9090/api/v1/query?query=up
+        return_content: true
+      register: prom_up
+
+    - name: Vérifier que toutes les cibles sont UP
+      ansible.builtin.assert:
+        that:
+          - prom_up.json.data.result | length >0
+          -  prom_up.json.data.result | selectattr('value.1', 'equalto', '0') | list | length == 0
+        fail_msg: "Au moins une cible Prometheus est DOWN"
+        success_msg: "Toutes les cibles Prometheus sont UP"
