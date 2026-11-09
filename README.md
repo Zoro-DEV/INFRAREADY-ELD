@@ -163,7 +163,7 @@ L'Infrastructure as Code (IaC) permet de décrire l'état cible des serveurs dan
 
 ## 🔄 Intégration Continue (CI/CD)
 
-Le fichier `.github/workflows/validation.yml` s'exécute automatiquement à chaque `push` ou `pull request` afin d'assurer le contrôle qualité :
+Le fichier `.github/workflows/validate.yml` s'exécute automatiquement à chaque `push` ou `pull request` afin d'assurer le contrôle qualité :
 
 ```yaml
 name: Validation Ansible Syntax
