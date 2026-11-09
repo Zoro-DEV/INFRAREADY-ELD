@@ -1,26 +1,15 @@
 # 🚀 Projet Fil Rouge : InfraReady
-> Déploiement, automatisation, supervision et documentation d'un système d'information hybride Linux/Windows.
+> Déploiement, automatisation et supervision d’un système
+d’information Linux/Windows
 
-[![CI/CD Validation](https://github.com/Zoro-DEV/INFRAREADY-ELD/actions/workflows/validation.yml/badge.svg)](https://github.com/Zoro-DEV/INFRAREADY-ELD/actions/workflows/validation.yml)
-[![Ansible](https://img.shields.io/badge/Ansible-Automation-red?logo=ansible)](https://www.ansible.com/)
-[![Windows Server](https://img.shields.io/badge/Windows_Server-2025-blue?logo=windows)](https://www.microsoft.com/)
-[![Ubuntu](https://img.shields.io/badge/Ubuntu_Server-24.04_LTS-orange?logo=ubuntu)](https://ubuntu.com/)
-[![Prometheus](https://img.shields.io/badge/Prometheus-Monitoring-e6522c?logo=prometheus)](https://prometheus.io/)
-[![Grafana](https://img.shields.io/badge/Grafana-Dashboard-f46800?logo=grafana)](https://grafana.com/)
-
----
-
-## 📋 Table des matières
-1. [Contexte du Projet](#-contexte-du-projet)
-2. [Architecture Technique & Réseau](#-architecture-technique--réseau)
-3. [Plan d'Adressage IP](#-plan-dadressage-ip)
-4. [Structure du Dépôt GitHub](#-structure-du-dépôt-github)
-5. [Prérequis & Installation](#-prérequis--installation)
-6. [Automatisation avec Ansible](#-automatisation-avec-ansible)
-7. [Supervision & Métriques](#-supervision--métriques)
-8. [Intégration Continue (CI/CD)](#-intégration-continue-cicd)
-9. [Rapport d'Incident](#-rapport-dincident)
-10. [Auteurs](#-auteurs)
+<p align="center">
+  <img src="https://img.shields.io/badge/Ansible-EE0000?style=for-the-badge&logo=ansible&logoColor=white" alt="Ansible">
+  <img src="https://img.shields.io/badge/Windows_Server-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Server">
+  <img src="https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu">
+  <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus">
+  <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana">
+  <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions">
+</p>
 
 ---
 
@@ -52,3 +41,39 @@ L'infrastructure repose sur 4 machines virtuelles hébergées sous **VMware Work
      │ • DNS        │        │ • Ext4 /data │        │ • Prometheus │
      │ • WinExporter│        │ • NodeExport │        │ • Grafana    │
      └──────────────┘        └──────────────┘        └──────────────┘
+```
+
+---
+
+## 📂 Structure du Dépôt
+```text
+INFRAREADY-ELD/
+├── .github/
+│   └── workflows/
+│       └── validation.yml           # Pipeline CI/CD GitHub Actions (Ansible Lint & Syntax)
+├── docs/
+│   ├── architecture.md              # Documentation détaillée de l'architecture
+│   ├── adressage-ip.md              # Plan de nommage et réseau
+│   ├── securite.md                  # Politiques de sécurité et moindre privilège
+│   ├── maintenance.md               # Procédures de màj et politique de snapshots
+│   └── incident.md                  # Fiche de diagnostic d'incident (#INC-2026-DNS-01)
+├── inventory/
+│   └── hosts.yml                    # Inventaire de production du laboratoire
+├── playbooks/
+│   ├── linux.yml                    # Provisionnement et durcissement Ubuntu
+│   ├── windows.yml                  # Configuration AD DS et services Windows
+│   ├── maintenance.yml              # Playbook de mises à jour automatisées
+│   └── verification.yml             # Tests post-déploiement et d'idempotence
+├── monitoring/
+│   ├── prometheus.yml               # Configuration de scraping des métriques
+│   └── dashboards/
+│       └── infraready-overview.json # Export du tableau de bord Grafana
+├── scripts/
+│   └── check_connectivity.sh        # Script de validation inter-machines
+└── README.md                        # Documentation principale du dépôt
+```
+
+---
+
+## ⚙️ Prérequis & Installation
+
