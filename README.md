@@ -75,5 +75,115 @@ INFRAREADY-ELD/
 
 ---
 
+
 ## ⚙️ Prérequis & Installation
 
+### 1. Connectivité & Transport
+
+Génération et déploiement de la clé SSH vers `LINUX01` :
+```bash
+# Génération de la clé Ed25519 sur OPS01
+ssh-keygen -t ed25519 -C "ansible_user@infraready"
+
+# Copie de la clé publique sur LINUX01
+ssh-copy-id -i ~/.ssh/id_ed25519.pub ansible_user@192.168.1.201
+```
+
+Activation et configuration de WinRM sur `WIN-DC01` (PowerShell Administrateur) :
+```powershell
+# Configuration de WinRM pour la gestion à distance
+winrm quickconfig -q
+Set-Item WSMan:\localhost\Service\Auth\Basic $true
+Set-Item WSMan:\localhost\Service\AllowUnencrypted $true
+
+# Autoriser les ports dans le pare-feu Windows
+New-NetFirewallRule -Name "WinRM-HTTP" -DisplayName "WinRM HTTP" -Enabled True -Direction Inbound -Protocol TCP -LocalPort 5985 -Action Allow
+New-NetFirewallRule -Name "WinRM-HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow
+```
+### 2. Installation des dépendances Ansible sur `OPS01`
+
+```bash
+# Mise à jour et installation des paquets système
+sudo apt update && sudo apt install -y ansible python3-pip python3-winrm
+
+# Installation des collections Ansible requises
+ansible-galaxy collection install ansible.windows community.windows ansible.posix
+
+# Installation des dépendances Python WinRM
+pip install pywinrm requests-credssp
+```
+
+## 🤖 Automatisation avec Ansible (Infrastructure as Code)
+
+L'Infrastructure as Code (IaC) permet de décrire l'état cible des serveurs dans des fichiers versionnés et de garantir l'**idempotence** : une seconde exécution produit un résultat `changed=0 / failed=0`.
+
+* **Inventaire (`inventory/hosts.yml`) :**
+
+  ```yaml
+  all:
+    children:
+      linux_servers:
+        hosts:
+          linux01:
+            ansible_host: 192.168.1.201
+            ansible_user: ansible_user
+      windows_servers:
+        hosts:
+          win-dc01:
+            ansible_host: 192.168.1.200
+            ansible_user: Administrator
+            ansible_connection: winrm
+            ansible_winrm_server_cert_validation: ignore
+  ```
+
+* **Commandes de lancement des playbooks :**
+
+  ```bash
+  # Provisionnement Linux
+  ansible-playbook -i inventory/hosts.yml playbooks/linux.yml
+  
+  # Provisionnement Windows
+  ansible-playbook -i inventory/hosts.yml playbooks/windows.yml
+  
+  # Playbook de vérification d'idempotence
+  ansible-playbook -i inventory/hosts.yml playbooks/verification.yml
+  ```
+
+## 📊 Supervision & Métriques
+
+* **Prometheus (`OPS01` - Port 9090) :** Collecte les métriques système toutes les 15 secondes auprès des agents :
+  * `Node Exporter` sur `LINUX01` (Port `9100`)
+  * `Windows Exporter` sur `WIN-DC01` (Port `9182`)
+
+* **Grafana (`OPS01` - Port 3000) :** Centralise la visualisation en temps réel (CPU, RAM, Disque `/data`, disponibilité `up`).
+
+* **Seuil d'alerte configuré :** Alerte automatique en cas d'injoignabilité d'un hôte (`up == 0`) ou de saturation du stockage (`< 10%` d'espace libre).
+
+## 🔄 Intégration Continue (CI/CD)
+
+Le fichier `.github/workflows/validation.yml` s'exécute automatiquement à chaque `push` ou `pull request` afin d'assurer le contrôle qualité :
+
+```yaml
+name: Validation CI/CD
+on: [push, pull_request]
+
+jobs:
+  ansible-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v3
+
+      - name: Installation de Python et Ansible-Lint
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-lint
+
+      - name: Validation syntaxique des Playbooks
+        run: |
+          ansible-playbook --syntax-check playbooks/*.yml
+
+      - name: Contrôle de qualité du code
+        run: |
+          ansible-lint playbooks/*.yml
+```
