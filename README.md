@@ -166,26 +166,28 @@ L'Infrastructure as Code (IaC) permet de décrire l'état cible des serveurs dan
 Le fichier `.github/workflows/validation.yml` s'exécute automatiquement à chaque `push` ou `pull request` afin d'assurer le contrôle qualité :
 
 ```yaml
-name: Validation CI/CD
-on: [push, pull_request]
+name: Validation Ansible Syntax
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
 
 jobs:
-  ansible-validation:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v3
+      - name: Récupérer le code
+        uses: actions/checkout@v4
 
-      - name: Installation de Python et Ansible-Lint
+      - name: Installer Ansible
         run: |
-          python -m pip install --upgrade pip
-          pip install ansible-lint
+          sudo apt-get update
+          sudo apt-get install -y ansible
 
-      - name: Validation syntaxique des Playbooks
+      - name: Valider la syntaxe des playbooks
         run: |
-          ansible-playbook --syntax-check playbooks/*.yml
-
-      - name: Contrôle de qualité du code
-        run: |
-          ansible-lint playbooks/*.yml
+          ansible-playbook -i inventory/hosts.yml playbooks/linux.yml --syntax-check
 ```
