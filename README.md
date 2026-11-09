@@ -58,8 +58,8 @@ INFRAREADY-ELD/
 │   └── incident.md                  # Fiche de diagnostic d'incident
 ├── inventory/
 │   ├── hosts.yml                    # Inventaire de production du laboratoire
-│   └── group_vars
-│       └── windows              
+│   └── group_vars/
+│       └── windows/              
 │           ├── vars.yml             # Variables de communication et d'authentification
 │           └── vault.yml            # Ansible vault
 │
