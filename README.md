@@ -50,26 +50,28 @@ L'infrastructure repose sur 4 machines virtuelles hébergées sous **VMware Work
 INFRAREADY-ELD/
 ├── .github/
 │   └── workflows/
-│       └── validation.yml           # Pipeline CI/CD GitHub Actions (Ansible Lint & Syntax)
+│       └── validate.yml           # Pipeline CI/CD GitHub Actions (Ansible Lint & Syntax)
 ├── docs/
 │   ├── architecture.md              # Documentation détaillée de l'architecture
 │   ├── adressage-ip.md              # Plan de nommage et réseau
 │   ├── securite.md                  # Politiques de sécurité et moindre privilège
-│   ├── maintenance.md               # Procédures de màj et politique de snapshots
-│   └── incident.md                  # Fiche de diagnostic d'incident (#INC-2026-DNS-01)
+│   └── incident.md                  # Fiche de diagnostic d'incident
 ├── inventory/
-│   └── hosts.yml                    # Inventaire de production du laboratoire
+│   ├── hosts.yml                    # Inventaire de production du laboratoire
+│   └── group_vars
+│       └── windows              
+│           ├── vars.yml                 # Variables de communication et d'authentification
+│           └── vault.yml                # Ansible vault
+│
 ├── playbooks/
 │   ├── linux.yml                    # Provisionnement et durcissement Ubuntu
 │   ├── windows.yml                  # Configuration AD DS et services Windows
 │   ├── maintenance.yml              # Playbook de mises à jour automatisées
 │   └── verification.yml             # Tests post-déploiement et d'idempotence
 ├── monitoring/
-│   ├── prometheus.yml               # Configuration de scraping des métriques
-│   └── dashboards/
-│       └── infraready-overview.json # Export du tableau de bord Grafana
+│   └── prometheus.yml               # Configuration de scraping des métriques
+├── roles/
 ├── scripts/
-│   └── check_connectivity.sh        # Script de validation inter-machines
 └── README.md                        # Documentation principale du dépôt
 ```
 
