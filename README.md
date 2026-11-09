@@ -60,8 +60,8 @@ INFRAREADY-ELD/
 │   ├── hosts.yml                    # Inventaire de production du laboratoire
 │   └── group_vars
 │       └── windows              
-│           ├── vars.yml                 # Variables de communication et d'authentification
-│           └── vault.yml                # Ansible vault
+│           ├── vars.yml             # Variables de communication et d'authentification
+│           └── vault.yml            # Ansible vault
 │
 ├── playbooks/
 │   ├── linux.yml                    # Provisionnement et durcissement Ubuntu
